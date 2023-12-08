@@ -66,16 +66,16 @@ class User(BaseModel):
     # email: str = None
     # full_name: str = None
     # disabled: bool = None
-    userid :int
-    loginname : str
-    username : str
+    manage_id :int
+    accesskey : str
+    customer : str
     # is_active = Column(Boolean, default=True)
     remark : str
-    statusid: int
+    status: int
 
  # 用户输入数据模型
 class UserInDB(User):
-    passwd: str
+    secretkey: str
 
 '''为了数据安全，我们利用PassLib对入库的用户密码进行加密处理，推荐的加密算法是"Bcrypt"
 其中，我们主要使用下面方法：
@@ -121,7 +121,7 @@ def get_user(db, username: str):
 # 验证用户,username，password是OAuth2PasswordRequestForm输入的参数
 def authenticate_user(fake_db, username: str, password: str):
     user = get_user(fake_db, username)
-    verify_result = verify_password(password, user.passwd)
+    verify_result = verify_password(password, user.secretkey)
     if not user or not verify_result:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -150,7 +150,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     # 2、access_token_expires访问令牌过期时间
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)  # timedelta表示两个datetime对象之间的差异。（来自datetime包）
     # 3、create_access_token创建访问令牌
-    access_token = create_access_token(data={"sub": user.loginname},expires_delta=access_token_expires)
+    access_token = create_access_token(data={"sub": user.accesskey},expires_delta=access_token_expires)
     # 返回
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -190,7 +190,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 # 获取当前激活用户，通过数据库信息及相关条件对用户有效性进行过滤；如该用户存在，密码正确，token验证通过，但数据库字段显示该用户被封号或欠费了（非激活用户），就这此处触发异常，结束访问。
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     # 如果用户状态不可用，抛出异常
-    if not current_user.statusid:
+    if not current_user.status:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
@@ -237,8 +237,8 @@ async def add_process_time_header(request: Request, call_next):
 async def verification_ip(request: Request, call_next):
     ip = request.client.host
     is_internal = internal(ip)
-    # 不是内网
-    if not is_internal:
+    # 是
+    if is_internal:
         result = {
             "ip": request.client.host,
             "x-real-ip": request.headers.get("X-Real-Ip", ""),
@@ -258,7 +258,8 @@ def internal(ipadd):
     :param ipadd:
     :return:
     '''
-    a=re.findall(r'^((192\.168)|(10\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d))|(172\.(1[6-9]|2[0-9]|3[0-1])))\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)$',ipadd)
+
+    a=re.findall(r'^((192\.168)|(10\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d))|(172\.(1[6-9]|2[0-9]|3[0-1]))|(127\.0))\.(0|1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{0,2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)$',ipadd)
     result = True if a else False
     # if a:
     #     # print('ture')

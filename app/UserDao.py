@@ -40,13 +40,13 @@ def get_alluser(db: Session = Depends(get_db)):
     # 组合成fake_users_db
     fake_users_db = {}
     for user in result:
-        fake_users_db[user["loginname"]] = {
-            "userid":user["userid"],
-            "loginname": user["loginname"],
-            "username": user["username"],
-            "passwd": user["passwd"],
+        fake_users_db[user["accesskey"]] = {
+            "manage_id":user["manage_id"],
+            "accesskey": user["accesskey"],
+            "customer": user["customer"],
+            "secretkey": user["secretkey"],
             "remark": user["remark"] if None else '',
-            "statusid": int(user["statusid"]) ,
+            "status": int(user["status"]) ,
 
         }
 

@@ -11,17 +11,17 @@ from database import Base, engine
 
 
 class UserItem(Base):
-	__tablename__ = 'biz_user_sysuser'  # 数据库表名
-	userid = Column(Integer, primary_key=True, index=True)
-	loginname = Column(String)
-	username = Column(String)
-	passwd = Column(String)
+	__tablename__ = 'model_authorize_manage'  # 数据库表名
+	manage_id  = Column(Integer, primary_key=True, index=True)
+	accesskey = Column(String)
+	customer = Column(String)
+	secretkey = Column(String)
 	# is_active = Column(Boolean, default=True)
 	remark = Column(String)
-	statusid = Column(Integer)
+	status = Column(Integer)
 
 	def keys(self):
-		return ["userid","loginname", "username","passwd","remark" ,"statusid"]
+		return ["manage_id","accesskey", "customer","secretkey","remark" ,"status"]
 
 	def __getitem__(self, item):
 		return self.__getattribute__(item)
